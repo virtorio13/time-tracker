@@ -1,0 +1,9 @@
+.idea
+TimeTracker.Core/bin
+TimeTracker.Core/obj
+TimeTracker.Data/bin
+TimeTracker.Data/obj
+TimeTracker.UI/bin
+TimeTracker.UI/obj
+TimeTracker.Verification/bin
+TimeTracker.Verification/obj

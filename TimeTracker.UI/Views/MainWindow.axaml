@@ -1,0 +1,198 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:TimeTracker.UI.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="TimeTracker.UI.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Time Tracker">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Window.Resources>
+        <!-- Icons -->
+        <StreamGeometry x:Key="IconAdd">M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z</StreamGeometry>
+        <StreamGeometry x:Key="IconExport">M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M16,13V15H13V18H11V15H8V13H11V10H13V13H16Z</StreamGeometry>
+        <StreamGeometry x:Key="IconRefresh">M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.86,17.53 19.79,14H17.65C16.83,16.5 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z</StreamGeometry>
+        <StreamGeometry x:Key="IconChart">M19,3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.9 20.1,3 19,3M9,17H7V10H9V17M13,17H11V7H13V17M17,17H15V13H17V17Z</StreamGeometry>
+    </Window.Resources>
+
+    <Window.Styles>
+        <Style Selector="Button">
+            <Setter Property="CornerRadius" Value="25"/>
+            <Setter Property="Padding" Value="15,5"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.toolbar">
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="Button.toolbar:pointerover /template/ ContentPresenter">
+             <Setter Property="Background" Value="{DynamicResource SystemChromeHighColor}"/>
+        </Style>
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="{DynamicResource SystemAccentColor}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.stop">
+            <Setter Property="Background" Value="#e74c3c"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="TextBox">
+             <Setter Property="CornerRadius" Value="5"/>
+        </Style>
+        <Style Selector="TreeViewItem">
+             <Setter Property="CornerRadius" Value="5"/>
+             <Setter Property="Padding" Value="5"/>
+        </Style>
+        <!-- Hover/Selection Visibility -->
+        <Style Selector="TreeViewItem Button.hover-only">
+             <Setter Property="Opacity" Value="0"/>
+             <Setter Property="IsHitTestVisible" Value="False"/>
+        </Style>
+        <Style Selector="TreeViewItem:pointerover Button.hover-only">
+             <Setter Property="Opacity" Value="1"/>
+             <Setter Property="IsHitTestVisible" Value="True"/>
+        </Style>
+        <Style Selector="TreeViewItem:selected Button.hover-only">
+             <Setter Property="Opacity" Value="1"/>
+             <Setter Property="IsHitTestVisible" Value="True"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Toolbar -->
+        <Border Grid.Row="0" Padding="10" Background="{DynamicResource SystemChromeMediumColor}" BorderBrush="{DynamicResource SystemChromeHighColor}" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" Spacing="5">
+                <Button Command="{Binding AddRootTaskCommand}" Classes="toolbar" ToolTip.Tip="Add New Task">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <PathIcon Data="{StaticResource IconAdd}" Width="16" Height="16"/>
+                        <TextBlock Text="Add Task" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding ExportCsvCommand}" Classes="toolbar" ToolTip.Tip="Export to CSV">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <PathIcon Data="{StaticResource IconExport}" Width="16" Height="16"/>
+                        <TextBlock Text="Export CSV" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding LoadTasksCommand}" Classes="toolbar" ToolTip.Tip="Refresh List">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                         <PathIcon Data="{StaticResource IconRefresh}" Width="16" Height="16"/>
+                         <TextBlock Text="Refresh" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Separator Classes="vertical" Margin="5"/>
+                <Button Command="{Binding OpenSummaryCommand}" Classes="toolbar" ToolTip.Tip="View Summary">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                         <PathIcon Data="{StaticResource IconChart}" Width="16" Height="16"/>
+                         <TextBlock Text="Summary" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, 5, 350">
+            
+            <!-- Task Tree -->
+            <Border Grid.Column="0" Background="{DynamicResource SystemChromeLowColor}" Margin="0,0,0,0">
+                <TreeView ItemsSource="{Binding RootTasks}" SelectedItem="{Binding SelectedTask}" Padding="10">
+                    <TreeView.Styles>
+                        <Style Selector="TreeViewItem">
+                            <Setter x:DataType="vm:TrackedTaskViewModel" Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                        </Style>
+                    </TreeView.Styles>
+                    <TreeView.ItemTemplate>
+                        <TreeDataTemplate ItemsSource="{Binding SubTasks}">
+                            <Grid ColumnDefinitions="*, Auto, Auto, Auto" Margin="0,5">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="5,0"/>
+                                    <TextBlock Text="{Binding ChecklistSummary}" VerticalAlignment="Center" Margin="5,0" Foreground="{DynamicResource SystemBaseMediumColor}" FontSize="12" IsVisible="{Binding ChecklistSummary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                </StackPanel>
+                                
+                                <TextBlock Grid.Column="1" Text="{Binding DurationText}" VerticalAlignment="Center" Margin="10,0" Width="70" FontFamily="Monospace" Opacity="0.7"/>
+
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5" Margin="5,0">
+                                     <Button Content="▶" 
+                                             Command="{Binding StartCommand}" 
+                                             IsVisible="{Binding !IsRunning}"
+                                             Classes="primary hover-only"
+                                             Padding="8,5"
+                                             ToolTip.Tip="Start"/>
+                                     
+                                     <StackPanel Orientation="Horizontal" Spacing="5" IsVisible="{Binding IsRunning}">
+                                         <Button Content="⬛" Command="{Binding StopCommand}" Classes="stop" Padding="8,5" ToolTip.Tip="Stop"/>
+                                     </StackPanel>
+                                </StackPanel>
+                                
+                                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="5">
+                                     <Button Content="+" Command="{Binding AddSubTaskCommand}" Classes="hover-only" Padding="8,5" ToolTip.Tip="Add Subtask"/>
+                                     <Button Content="🗑" Command="{Binding DeleteCommand}" Classes="hover-only" Padding="8,5" Background="Transparent" Foreground="#e74c3c" ToolTip.Tip="Delete Task"/>
+                                </StackPanel>
+                            </Grid>
+                        </TreeDataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
+            </Border>
+
+            <GridSplitter Grid.Column="1" Background="{DynamicResource SystemChromeMediumColor}" ResizeDirection="Columns"/>
+
+            <!-- Details Panel -->
+            <Border Grid.Column="2" Background="{DynamicResource SystemRegionBrush}" Padding="20" IsVisible="{Binding SelectedTask, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <Grid RowDefinitions="Auto, Auto, *, Auto">
+                    <StackPanel Grid.Row="0" Spacing="10">
+                        <TextBlock Text="Task Details" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}"/>
+                        <TextBox Text="{Binding SelectedTask.Name}" Watermark="Task Name" Classes="h1" FontSize="16"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Spacing="5" Margin="0,20">
+                        <TextBlock Text="Notes" FontWeight="SemiBold"/>
+                        <TextBox Text="{Binding SelectedTask.Notes}" Height="100" AcceptsReturn="True" TextWrapping="Wrap" Background="{DynamicResource SystemChromeMediumColor}"/>
+                    </StackPanel>
+                    
+                    <DockPanel Grid.Row="2" Margin="0,10">
+                        <TextBlock DockPanel.Dock="Top" Text="Checklist" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                        
+                        <ScrollViewer>
+                            <ItemsControl ItemsSource="{Binding SelectedTask.TodoItems}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{DynamicResource SystemChromeMediumColor}" CornerRadius="5" Padding="10" Margin="0,0,0,5">
+                                            <Grid ColumnDefinitions="Auto, *, Auto">
+                                                <CheckBox Grid.Column="0" IsChecked="{Binding IsDone}" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Description}" VerticalAlignment="Center" Margin="10,0" TextDecorations="{Binding IsDone, Converter={x:Static ObjectConverters.IsNotNull}}" TextWrapping="Wrap"/>
+                                                <Button Grid.Column="2" Content="✕" Command="{Binding $parent[Window].DataContext.SelectedTask.RemoveTodoCommand}" CommandParameter="{Binding .}" Background="Transparent" Foreground="Red" Padding="5"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </DockPanel>
+
+                     <StackPanel Grid.Row="3" Spacing="10" Margin="0,10,0,0">
+                        <TextBlock Text="Add Item" FontWeight="SemiBold"/>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBox Name="NewTodoBox" Grid.Column="0" Watermark="New todo item..." Text="{Binding SelectedTask.NewTodoText}">
+                                <TextBox.KeyBindings>
+                                    <KeyBinding Gesture="Enter" Command="{Binding SelectedTask.AddTodoCommand}"/>
+                                </TextBox.KeyBindings>
+                            </TextBox>
+                            <Button Grid.Column="1" Content="Add" 
+                                    Margin="10,0,0,0"
+                                    Classes="primary"
+                                    Command="{Binding SelectedTask.AddTodoCommand}"/>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+            </Border>
+             <TextBlock Grid.Column="2" Text="Select a task to view details" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.5" IsVisible="{Binding SelectedTask, Converter={x:Static ObjectConverters.IsNull}}"/>
+        </Grid>
+    </Grid>
+</Window>
