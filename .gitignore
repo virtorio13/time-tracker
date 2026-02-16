@@ -7,3 +7,5 @@ TimeTracker.UI/bin
 TimeTracker.UI/obj
 TimeTracker.Verification/bin
 TimeTracker.Verification/obj
+Dist
+.DS_Store
