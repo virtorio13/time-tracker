@@ -16,6 +16,7 @@ public partial class TrackedTaskViewModel : ObservableObject
     private readonly ITimeTrackingService _timeTrackingService;
     private readonly ITaskService _taskService;
     private readonly Action _refreshTreeAction;
+    private readonly Action<TrackedTaskViewModel>? _requestSelectionAction;
 
     [ObservableProperty]
     private string _name;
@@ -53,12 +54,14 @@ public partial class TrackedTaskViewModel : ObservableObject
         TrackedTask task, 
         ITimeTrackingService timeTrackingService,
         ITaskService taskService,
-        Action refreshTreeAction)
+        Action refreshTreeAction,
+        Action<TrackedTaskViewModel>? requestSelectionAction = null)
     {
         _task = task;
         _timeTrackingService = timeTrackingService;
         _taskService = taskService;
         _refreshTreeAction = refreshTreeAction;
+        _requestSelectionAction = requestSelectionAction;
 
         Name = task.Name;
         Notes = task.Notes ?? "";
@@ -66,8 +69,26 @@ public partial class TrackedTaskViewModel : ObservableObject
 
         foreach (var subTask in task.SubTasks)
         {
-            SubTasks.Add(new TrackedTaskViewModel(subTask, timeTrackingService, taskService, refreshTreeAction));
+            var subVm = new TrackedTaskViewModel(subTask, timeTrackingService, taskService, refreshTreeAction, requestSelectionAction);
+            subVm.PropertyChanged += SubTask_PropertyChanged;
+            SubTasks.Add(subVm);
         }
+        
+        SubTasks.CollectionChanged += (s, e) => {
+             if (e.NewItems != null)
+                foreach(TrackedTaskViewModel item in e.NewItems) 
+                {
+                    item.PropertyChanged += SubTask_PropertyChanged;
+                    // Trigger refresh immediately when child added
+                    RefreshChecklistStats(); 
+                }
+            if (e.OldItems != null)
+                foreach(TrackedTaskViewModel item in e.OldItems) 
+                {
+                    item.PropertyChanged -= SubTask_PropertyChanged;
+                    RefreshChecklistStats();
+                }
+        };
 
         foreach (var todo in task.TodoItems)
         {
@@ -89,20 +110,55 @@ public partial class TrackedTaskViewModel : ObservableObject
     {
         if (e.PropertyName == nameof(TodoItemViewModel.IsDone))
         {
-            UpdateChecklistSummary();
+            RefreshChecklistStats();
         }
     }
 
+    private void SubTask_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(TotalTodoCount) || e.PropertyName == nameof(CompletedTodoCount))
+        {
+            RefreshChecklistStats();
+        }
+    }
+
+    [ObservableProperty]
+    private int _completedTodoCount;
+
+    [ObservableProperty]
+    private int _totalTodoCount;
+
+    [ObservableProperty]
+    private double _progressValue;
+
     private void UpdateChecklistSummary()
     {
-        if (TodoItems.Count == 0)
+        RefreshChecklistStats();
+    }
+
+    public void RefreshChecklistStats()
+    {
+        // Calculate own stats
+        int ownTotal = TodoItems.Count;
+        int ownCompleted = TodoItems.Count(t => t.IsDone);
+
+        // Calculate children stats
+        int childrenTotal = SubTasks.Sum(s => s.TotalTodoCount);
+        int childrenCompleted = SubTasks.Sum(s => s.CompletedTodoCount);
+
+        // Update properties
+        TotalTodoCount = ownTotal + childrenTotal;
+        CompletedTodoCount = ownCompleted + childrenCompleted;
+
+        if (TotalTodoCount == 0)
         {
             ChecklistSummary = "";
+            ProgressValue = 0;
         }
         else
         {
-            int completed = TodoItems.Count(t => t.IsDone);
-            ChecklistSummary = $"[{completed}/{TodoItems.Count}]";
+            ChecklistSummary = $"[{CompletedTodoCount}/{TotalTodoCount}]";
+            ProgressValue = (double)CompletedTodoCount / TotalTodoCount;
         }
     }
     
@@ -150,7 +206,11 @@ public partial class TrackedTaskViewModel : ObservableObject
     private async Task AddSubTask()
     {
         var newTask = await _taskService.CreateTaskAsync("New Subtask", _task.Id);
-        SubTasks.Add(new TrackedTaskViewModel(newTask, _timeTrackingService, _taskService, _refreshTreeAction));
+        var newVm = new TrackedTaskViewModel(newTask, _timeTrackingService, _taskService, _refreshTreeAction, _requestSelectionAction);
+        // Event subscription handled by CollectionChanged
+        SubTasks.Add(newVm);
+        IsExpanded = true;
+        _requestSelectionAction?.Invoke(newVm);
     }
 
     [RelayCommand]

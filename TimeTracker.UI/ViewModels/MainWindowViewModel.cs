@@ -58,7 +58,7 @@ public partial class MainWindowViewModel : ObservableObject
         RootTasks.Clear();
         foreach (var task in tasks.Where(t => t.ParentTaskId == null))
         {
-            var vm = new TrackedTaskViewModel(task, _timeTrackingService, _taskService, () => LoadTasksCommand.Execute(null));
+            var vm = new TrackedTaskViewModel(task, _timeTrackingService, _taskService, () => LoadTasksCommand.Execute(null), (selected) => SelectedTask = selected);
             UpdateRecursive(vm, activeEntry);
 
             // Restore state recursively
