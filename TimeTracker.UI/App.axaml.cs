@@ -72,6 +72,12 @@ public partial class App : Application
                 summaryWindow.Show(mainWindow);
             };
 
+            vm.ShowConfirmDialog = async (title, message) =>
+            {
+                var dialog = new ConfirmDialog(title, message);
+                return await dialog.ShowDialog<bool>(mainWindow);
+            };
+
             desktop.MainWindow = mainWindow;
         }
 

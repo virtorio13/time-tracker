@@ -1,0 +1,23 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="TimeTracker.UI.Views.ConfirmDialog"
+        Title="Confirm Dialog"
+        Width="350" Height="150"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        SystemDecorations="BorderOnly">
+
+    <Grid RowDefinitions="*,Auto" Margin="20">
+        <TextBlock Name="MessageTextBlock"
+                   Text="Are you sure?"
+                   TextWrapping="Wrap"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   FontSize="16" />
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="20" Margin="0,20,0,0">
+            <Button Name="YesButton" Content="Yes" Width="80" HorizontalContentAlignment="Center" Click="YesButton_OnClick"/>
+            <Button Name="NoButton" Content="No" Width="80" HorizontalContentAlignment="Center" Click="NoButton_OnClick" IsDefault="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

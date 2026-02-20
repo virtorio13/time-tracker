@@ -110,7 +110,33 @@
                     </TreeView.Styles>
                     <TreeView.ItemTemplate>
                         <TreeDataTemplate ItemsSource="{Binding SubTasks}">
-                            <Grid ColumnDefinitions="*, Auto, 100, Auto, Auto" Margin="0,5">
+                            <Grid ColumnDefinitions="*, Auto, 100, Auto, Auto" Margin="0,5" Background="Transparent">
+                                <Grid.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Start" Command="{Binding StartCommand}" IsVisible="{Binding !IsRunning}">
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="▶"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Stop" Command="{Binding StopCommand}" IsVisible="{Binding IsRunning}">
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="⬛" Foreground="#e74c3c"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <Separator/>
+                                        <MenuItem Header="Add Subtask" Command="{Binding AddSubTaskCommand}">
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="+" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <Separator/>
+                                        <MenuItem Header="Delete" Command="{Binding DeleteCommand}" Foreground="#e74c3c">
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="🗑" Foreground="#e74c3c"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                    </ContextMenu>
+                                </Grid.ContextMenu>
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="5,0"/>
                                     <TextBlock Text="{Binding ChecklistSummary}" VerticalAlignment="Center" Margin="5,0" Foreground="{DynamicResource SystemBaseMediumColor}" FontSize="12" IsVisible="{Binding ChecklistSummary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
@@ -174,10 +200,36 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border Background="{DynamicResource SystemChromeMediumColor}" CornerRadius="5" Padding="10" Margin="0,0,0,5">
+                                            <Border.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="Mark as Complete" Command="{Binding ToggleDoneCommand}" IsVisible="{Binding !IsDone}"/>
+                                                    <MenuItem Header="Mark as Incomplete" Command="{Binding ToggleDoneCommand}" IsVisible="{Binding IsDone}"/>
+                                                    <Separator/>
+                                                    <MenuItem Header="Rename" Command="{Binding BeginEditCommand}"/>
+                                                    <Separator/>
+                                                    <MenuItem Header="Delete" Command="{Binding $parent[Window].DataContext.SelectedTask.RemoveTodoCommand}" CommandParameter="{Binding .}" Foreground="Red"/>
+                                                </ContextMenu>
+                                            </Border.ContextMenu>
                                             <Grid ColumnDefinitions="Auto, *, Auto">
                                                 <CheckBox Grid.Column="0" IsChecked="{Binding IsDone}" VerticalAlignment="Center"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding Description}" VerticalAlignment="Center" Margin="10,0" TextDecorations="{Binding IsDone, Converter={x:Static ObjectConverters.IsNotNull}}" TextWrapping="Wrap"/>
-                                                <Button Grid.Column="2" Content="✕" Command="{Binding $parent[Window].DataContext.SelectedTask.RemoveTodoCommand}" CommandParameter="{Binding .}" Background="Transparent" Foreground="Red" Padding="5"/>
+                                                
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0">
+                                                    <TextBlock Text="{Binding Description}" 
+                                                               IsVisible="{Binding !IsEditing}"
+                                                               TextDecorations="{Binding IsDone, Converter={x:Static ObjectConverters.IsNotNull}}" 
+                                                               TextWrapping="Wrap"/>
+                                                    
+                                                    <TextBox Text="{Binding Description}" 
+                                                             IsVisible="{Binding IsEditing}"
+                                                             Watermark="Checklist item description...">
+                                                        <TextBox.KeyBindings>
+                                                            <KeyBinding Gesture="Enter" Command="{Binding CommitEditCommand}"/>
+                                                        </TextBox.KeyBindings>
+                                                    </TextBox>
+                                                </StackPanel>
+
+                                                <Button Grid.Column="2" Content="✕" IsVisible="{Binding !IsEditing}" Command="{Binding $parent[Window].DataContext.SelectedTask.RemoveTodoCommand}" CommandParameter="{Binding .}" Background="Transparent" Foreground="Red" Padding="5"/>
+                                                <Button Grid.Column="2" Content="✓" IsVisible="{Binding IsEditing}" Command="{Binding CommitEditCommand}" Classes="primary" Padding="8,5"/>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>

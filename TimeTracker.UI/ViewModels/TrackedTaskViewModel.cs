@@ -17,6 +17,7 @@ public partial class TrackedTaskViewModel : ObservableObject
     private readonly ITaskService _taskService;
     private readonly Action _refreshTreeAction;
     private readonly Action<TrackedTaskViewModel>? _requestSelectionAction;
+    private readonly Func<string, string, Task<bool>>? _requestConfirmAction;
 
     [ObservableProperty]
     private string _name;
@@ -55,13 +56,15 @@ public partial class TrackedTaskViewModel : ObservableObject
         ITimeTrackingService timeTrackingService,
         ITaskService taskService,
         Action refreshTreeAction,
-        Action<TrackedTaskViewModel>? requestSelectionAction = null)
+        Action<TrackedTaskViewModel>? requestSelectionAction = null,
+        Func<string, string, Task<bool>>? requestConfirmAction = null)
     {
         _task = task;
         _timeTrackingService = timeTrackingService;
         _taskService = taskService;
         _refreshTreeAction = refreshTreeAction;
         _requestSelectionAction = requestSelectionAction;
+        _requestConfirmAction = requestConfirmAction;
 
         Name = task.Name;
         Notes = task.Notes ?? "";
@@ -69,7 +72,7 @@ public partial class TrackedTaskViewModel : ObservableObject
 
         foreach (var subTask in task.SubTasks)
         {
-            var subVm = new TrackedTaskViewModel(subTask, timeTrackingService, taskService, refreshTreeAction, requestSelectionAction);
+            var subVm = new TrackedTaskViewModel(subTask, timeTrackingService, taskService, refreshTreeAction, requestSelectionAction, requestConfirmAction);
             subVm.PropertyChanged += SubTask_PropertyChanged;
             SubTasks.Add(subVm);
         }
@@ -182,6 +185,12 @@ public partial class TrackedTaskViewModel : ObservableObject
     [RelayCommand]
     private async Task RemoveTodo(TodoItemViewModel todo)
     {
+        if (_requestConfirmAction != null)
+        {
+            var confirm = await _requestConfirmAction("Delete Todo", $"Are you sure you want to delete '{todo.Description}'?");
+            if (!confirm) return;
+        }
+
         await _taskService.DeleteTodoAsync(_task.Id, todo.Id);
         TodoItems.Remove(todo);
     }
@@ -206,7 +215,7 @@ public partial class TrackedTaskViewModel : ObservableObject
     private async Task AddSubTask()
     {
         var newTask = await _taskService.CreateTaskAsync("New Subtask", _task.Id);
-        var newVm = new TrackedTaskViewModel(newTask, _timeTrackingService, _taskService, _refreshTreeAction, _requestSelectionAction);
+        var newVm = new TrackedTaskViewModel(newTask, _timeTrackingService, _taskService, _refreshTreeAction, _requestSelectionAction, _requestConfirmAction);
         // Event subscription handled by CollectionChanged
         SubTasks.Add(newVm);
         IsExpanded = true;
@@ -216,6 +225,12 @@ public partial class TrackedTaskViewModel : ObservableObject
     [RelayCommand]
     private async Task Delete()
     {
+        if (_requestConfirmAction != null)
+        {
+            var confirm = await _requestConfirmAction("Delete Task", $"Are you sure you want to delete '{Name}'?");
+            if (!confirm) return;
+        }
+
         await _taskService.DeleteTaskAsync(_task.Id);
         _refreshTreeAction?.Invoke(); // Parent needs to remove this from its collection
     }

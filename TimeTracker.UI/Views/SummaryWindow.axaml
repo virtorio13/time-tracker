@@ -57,9 +57,9 @@
 
         <!-- Footer -->
         <Border Grid.Row="2" Margin="0,20,0,0" Padding="10" Background="{DynamicResource SystemChromeMediumColor}" CornerRadius="5">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-                <TextBlock Text="Total Time:" FontWeight="Bold" FontSize="16"/>
-                <TextBlock Text="{Binding TotalTimeText}" FontSize="16" FontFamily="Monospace"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="10">
+                <TextBlock Text="Total Time:" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding TotalTimeText}" FontSize="16" FontFamily="Monospace" VerticalAlignment="Center"/>
             </StackPanel>
         </Border>
     </Grid>

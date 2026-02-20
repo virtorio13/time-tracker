@@ -58,7 +58,13 @@ public partial class MainWindowViewModel : ObservableObject
         RootTasks.Clear();
         foreach (var task in tasks.Where(t => t.ParentTaskId == null))
         {
-            var vm = new TrackedTaskViewModel(task, _timeTrackingService, _taskService, () => LoadTasksCommand.Execute(null), (selected) => SelectedTask = selected);
+            var vm = new TrackedTaskViewModel(
+                task, 
+                _timeTrackingService, 
+                _taskService, 
+                () => LoadTasksCommand.Execute(null), 
+                (selected) => SelectedTask = selected,
+                (title, message) => ShowConfirmDialog?.Invoke(title, message) ?? Task.FromResult(true));
             UpdateRecursive(vm, activeEntry);
 
             // Restore state recursively
@@ -133,6 +139,8 @@ public partial class MainWindowViewModel : ObservableObject
     }
     
     public Action? ShowSummaryWindow { get; set; }
+
+    public Func<string, string, Task<bool>>? ShowConfirmDialog { get; set; }
 
     [RelayCommand]
     private void OpenSummary()

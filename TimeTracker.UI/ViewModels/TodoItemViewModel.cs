@@ -1,5 +1,6 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using TimeTracker.Core.Entities;
 using TimeTracker.Core.Interfaces;
 
@@ -22,6 +23,9 @@ public partial class TodoItemViewModel : ObservableObject
     [ObservableProperty]
     private bool _isDone;
 
+    [ObservableProperty]
+    private bool _isEditing;
+
     public Guid Id => _todoItem.Id;
 
     public TodoItemViewModel(TodoItem todoItem, ITaskService taskService)
@@ -35,5 +39,24 @@ public partial class TodoItemViewModel : ObservableObject
     partial void OnIsDoneChanged(bool value)
     {
         _taskService.ToggleTodoAsync(_todoItem.TrackedTaskId, _todoItem.Id);
+    }
+
+    [RelayCommand]
+    private void ToggleDone()
+    {
+        IsDone = !IsDone;
+    }
+
+    [RelayCommand]
+    private void BeginEdit()
+    {
+        IsEditing = true;
+    }
+
+    [RelayCommand]
+    private void CommitEdit()
+    {
+        IsEditing = false;
+        // OnDescriptionChanged is already hooked up to save the changes
     }
 }
